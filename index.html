@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B0B14">
+<title>Geometría Analítica · 10° · CTP Vázquez de Coronado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B14;
+    --bg-soft:#121220;
+    --surface:#1A1A2A;
+    --surface-2:#21213400;
+    --line: rgba(255,255,255,0.08);
+    --text:#F4F4F8;
+    --text-dim:#9B9BB0;
+    --t1:#00E5C8; --t1-soft:rgba(0,229,200,.14);
+    --t2:#FF3D8A; --t2-soft:rgba(255,61,138,.14);
+    --t3:#8B5CF6; --t3-soft:rgba(139,92,246,.14);
+    --t4:#FFB020; --t4-soft:rgba(255,176,32,.14);
+    --good:#2BD576;
+    --bad:#FF5470;
+    --radius:22px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    overflow:hidden;
+  }
+  .formula{font-family:'JetBrains Mono',monospace;}
+  h1,h2,h3,.display{font-family:'Space Grotesk',system-ui,sans-serif;}
+  button{font-family:inherit;}
+
+  #app-frame{
+    position:relative; height:100dvh; width:100%; max-width:480px; margin:0 auto;
+    background:var(--bg); overflow:hidden;
+  }
+  @media (min-width:540px){
+    body{display:flex; align-items:center; justify-content:center; background:#06060B;}
+    #app-frame{
+      height:92vh; max-height:900px; border-radius:36px;
+      box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 0 8px #16161f, 0 0 0 9px #2a2a3a;
+    }
+  }
+
+  .view{position:absolute; inset:0; display:none; flex-direction:column;}
+  .view.active{display:flex;}
+
+  /* ---------- HOME ---------- */
+  #view-home{padding:34px 24px 110px; overflow-y:auto;}
+  .eyebrow{
+    font-size:12.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--text-dim); font-weight:600; margin-bottom:10px;
+  }
+  .home-title{font-size:42px; line-height:1.02; font-weight:700; margin:0 0 6px;
+    background:linear-gradient(95deg,var(--t1),var(--t2) 38%, var(--t3) 68%, var(--t4));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .home-sub{color:var(--text-dim); font-size:14.5px; line-height:1.5; margin:0 0 26px;}
+  .home-sub b{color:var(--text); font-weight:600;}
+
+  .tema-pills{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:26px;}
+  .tema-pill{
+    border:1px solid var(--line); border-radius:16px; padding:14px 14px 12px;
+    background:var(--surface); cursor:pointer; text-align:left;
+  }
+  .tema-pill .num{font-family:'Space Grotesk'; font-weight:700; font-size:13px; opacity:.85;}
+  .tema-pill .name{font-size:13.5px; font-weight:600; margin-top:6px; line-height:1.25;}
+  .tema-pill.t1{border-color:rgba(0,229,200,.35);} .tema-pill.t1 .num{color:var(--t1);}
+  .tema-pill.t2{border-color:rgba(255,61,138,.35);} .tema-pill.t2 .num{color:var(--t2);}
+  .tema-pill.t3{border-color:rgba(139,92,246,.35);} .tema-pill.t3 .num{color:var(--t3);}
+  .tema-pill.t4{border-color:rgba(255,176,32,.35);} .tema-pill.t4 .num{color:var(--t4);}
+
+  .cta-stack{display:flex; flex-direction:column; gap:12px; margin-bottom:30px;}
+  .btn{
+    border:none; border-radius:999px; padding:17px 22px; font-weight:700; font-size:15.5px;
+    display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+    transition:transform .15s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:linear-gradient(95deg,var(--t1),var(--t3)); color:#06060B;}
+  .btn-outline{background:transparent; border:1.5px solid var(--line); color:var(--text);}
+  .btn:focus-visible{outline:2px solid var(--t1); outline-offset:3px;}
+
+  .habilidades-box{background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px;}
+  .habilidades-box h3{font-size:13px; text-transform:uppercase; letter-spacing:.08em; margin:0 0 12px; color:var(--text-dim);}
+  .hab-item{display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--line); font-size:13px; line-height:1.4; color:var(--text-dim);}
+  .hab-item:first-of-type{border-top:none;}
+  .hab-item .chk{flex:none; color:var(--good); font-weight:700;}
+  .hab-item b{color:var(--text); font-weight:600;}
+
+  /* ---------- BOTTOM NAV ---------- */
+  .bottom-nav{
+    position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-around;
+    padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(0deg, rgba(11,11,20,.97) 70%, rgba(11,11,20,0));
+    backdrop-filter:blur(6px);
+  }
+  .nav-btn{background:none; border:none; color:var(--text-dim); font-size:11.5px; font-weight:600;
+    display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:4px 14px;}
+  .nav-btn .ic{font-size:19px;}
+  .nav-btn.active{color:var(--text);}
+
+  /* ---------- STUDY ---------- */
+  #view-study{position:relative;}
+  .study-scroll{flex:1; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth;}
+  .study-card{
+    height:100%; min-height:100%; scroll-snap-align:start; scroll-snap-stop:always;
+    display:flex; flex-direction:column; justify-content:center; padding:30px 26px 100px;
+    position:relative;
+  }
+  .study-progress{position:absolute; top:14px; left:18px; right:18px; display:flex; gap:4px; z-index:5;}
+  .study-progress i{flex:1; height:3px; border-radius:3px; background:rgba(255,255,255,.14);}
+  .study-progress i.done{background:var(--bar-color, var(--t1));}
+  .tback{position:absolute; top:30px; right:22px; background:var(--surface); border:1px solid var(--line);
+    color:var(--text-dim); font-size:11px; font-weight:700; padding:6px 12px; border-radius:999px; z-index:5;}
+  .card-eyebrow{font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:14px;}
+  .card-title{font-size:25px; font-weight:700; line-height:1.18; margin:0 0 16px;}
+  .card-body{font-size:15px; line-height:1.62; color:#D8D8E4;}
+  .card-body p{margin:0 0 12px;}
+  .formula-box{
+    font-family:'JetBrains Mono',monospace; font-size:14px; background:var(--surface);
+    border:1px solid var(--line); border-left:3px solid var(--accent,var(--t1));
+    border-radius:12px; padding:13px 15px; margin:12px 0; line-height:1.65; white-space:pre-wrap;
+  }
+  .result-pill{display:inline-block; font-weight:700; font-size:13.5px; padding:7px 14px; border-radius:999px;
+    background:var(--accent-soft,var(--t1-soft)); color:var(--accent,var(--t1)); margin-top:6px;}
+  .step{display:flex; gap:10px; margin:9px 0; font-size:14px; align-items:flex-start;}
+  .step .dot{flex:none; width:6px; height:6px; border-radius:50%; background:var(--accent,var(--t1)); margin-top:7px;}
+  .swipe-hint{position:absolute; bottom:96px; left:0; right:0; text-align:center; font-size:11.5px;
+    color:var(--text-dim); letter-spacing:.04em; animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0); opacity:.55;} 50%{transform:translateY(5px); opacity:1;}}
+
+  .tema-portada{align-items:flex-start;}
+  .tema-portada .big-emoji{font-size:46px; margin-bottom:14px;}
+  .tema-portada .card-title{font-size:30px;}
+  .tema-portada .hab-tag{font-size:12.5px; color:var(--text-dim); background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; padding:10px 13px; margin-top:14px; line-height:1.5;}
+  .tema-portada .hab-tag b{color:var(--text);}
+
+  /* ---------- QUIZ ---------- */
+  #view-quiz{padding:0;}
+  .quiz-top{padding:18px 22px 6px;}
+  .quiz-progress-track{height:6px; border-radius:6px; background:rgba(255,255,255,.1); overflow:hidden; margin-bottom:10px;}
+  .quiz-progress-fill{height:100%; border-radius:6px; background:linear-gradient(90deg,var(--t1),var(--t3)); transition:width .35s ease;}
+  .quiz-meta{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-dim); font-weight:600;}
+  .quiz-tema-tag{font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px;}
+  .quiz-body{flex:1; padding:10px 22px 18px; overflow-y:auto;}
+  .quiz-q{font-size:21px; font-weight:700; line-height:1.32; margin:14px 0 22px; font-family:'Space Grotesk';}
+  .opt{
+    display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:var(--surface);
+    border:1.5px solid var(--line); border-radius:16px; padding:15px 16px; margin-bottom:11px;
+    font-size:14.5px; font-weight:500; color:var(--text); cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .opt .letter{flex:none; width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.08);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:'Space Grotesk';}
+  .opt:active{transform:scale(.985);}
+  .opt.correct{border-color:var(--good); background:rgba(43,213,118,.12);}
+  .opt.correct .letter{background:var(--good); color:#06150C;}
+  .opt.wrong{border-color:var(--bad); background:rgba(255,84,112,.12);}
+  .opt.wrong .letter{background:var(--bad); color:#1A0509;}
+  .opt.disabled{pointer-events:none;}
+  .explain-box{
+    margin-top:6px; padding:14px 15px; border-radius:14px; background:var(--bg-soft);
+    border:1px solid var(--line); font-size:13.5px; line-height:1.55; color:#CFCFE0;
+  }
+  .explain-box b{color:var(--text);}
+  .quiz-next-wrap{padding:0 22px 22px; padding-bottom:calc(22px + env(safe-area-inset-bottom));}
+
+  /* ---------- RESULTS ---------- */
+  #view-results{padding:30px 24px; overflow-y:auto; align-items:center; text-align:center;}
+  .gauge-wrap{position:relative; width:190px; height:190px; margin:6px auto 6px;}
+  .gauge-wrap svg{width:100%; height:100%; transform:rotate(-90deg);}
+  .gauge-bg{fill:none; stroke:rgba(255,255,255,.08); stroke-width:11;}
+  .gauge-fg{fill:none; stroke-width:11; stroke-linecap:round; transition:stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1), stroke 0.4s;}
+  .gauge-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .gauge-num{font-family:'Space Grotesk'; font-size:46px; font-weight:700; line-height:1;}
+  .gauge-label{font-size:11px; color:var(--text-dim); letter-spacing:.1em; text-transform:uppercase; margin-top:4px;}
+  .result-msg{font-size:16px; font-weight:700; margin:14px 0 4px;}
+  .result-sub{font-size:13px; color:var(--text-dim); margin-bottom:24px;}
+  .breakdown{width:100%; text-align:left; margin-bottom:22px;}
+  .breakdown h3{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim); margin:0 0 12px;}
+  .bd-row{margin-bottom:12px;}
+  .bd-row .bd-top{display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; margin-bottom:5px;}
+  .bd-track{height:7px; border-radius:7px; background:rgba(255,255,255,.08); overflow:hidden;}
+  .bd-fill{height:100%; border-radius:7px;}
+  .review-box{width:100%; text-align:left; margin-bottom:24px;}
+  .review-box h3{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim); margin:0 0 12px;}
+  .review-item{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:13px 14px; margin-bottom:10px; font-size:13px; line-height:1.5;}
+  .review-item .rq{font-weight:600; margin-bottom:6px;}
+  .review-item .ra{color:var(--good); font-weight:600;}
+  .result-btns{display:flex; flex-direction:column; gap:10px; width:100%;}
+
+  ::-webkit-scrollbar{width:0; height:0;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001s !important; transition-duration:.001s !important;}
+  }
+</style>
+</head>
+<body>
+<div id="app-frame">
+
+  <!-- ===================== HOME ===================== -->
+  <section id="view-home" class="view active">
+    <div class="eyebrow">CTP Vázquez de Coronado · 10° año</div>
+    <h1 class="home-title">Geometría<br>Analítica</h1>
+    <p class="home-sub">II prueba · I periodo 2026 — Prof. <b>MSc. Miguel Vindas Carballo</b>. Repasá los 4 temas y hacé el quiz de 32 preguntas con nota incluida.</p>
+
+    <div class="tema-pills" id="tema-pills"></div>
+
+    <div class="cta-stack">
+      <button class="btn btn-primary" onclick="goStudy(0)">📚 Empezar a estudiar</button>
+      <button class="btn btn-outline" onclick="goQuiz()">🧠 Ir directo al quiz</button>
+    </div>
+
+    <div class="habilidades-box">
+      <h3>Habilidades que cubre esta app</h3>
+      <div id="hab-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== STUDY ===================== -->
+  <section id="view-study" class="view">
+    <div class="study-scroll" id="study-scroll"></div>
+    <nav class="bottom-nav">
+      <button class="nav-btn" onclick="showHome()"><span class="ic">🏠</span>Inicio</button>
+      <button class="nav-btn active" onclick="goStudy()"><span class="ic">📚</span>Estudiar</button>
+      <button class="nav-btn" onclick="goQuiz()"><span class="ic">🧠</span>Quiz</button>
+    </nav>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="view-quiz" class="view">
+    <div class="quiz-top">
+      <div class="quiz-progress-track"><div class="quiz-progress-fill" id="quiz-progress-fill"></div></div>
+      <div class="quiz-meta">
+        <span id="quiz-counter">Pregunta 1/32</span>
+        <span class="quiz-tema-tag" id="quiz-tema-tag">Tema 1</span>
+      </div>
+    </div>
+    <div class="quiz-body" id="quiz-body"></div>
+    <nav class="bottom-nav">
+      <button class="nav-btn" onclick="showHome()"><span class="ic">🏠</span>Inicio</button>
+      <button class="nav-btn" onclick="goStudy()"><span class="ic">📚</span>Estudiar</button>
+      <button class="nav-btn active" onclick="goQuiz()"><span class="ic">🧠</span>Quiz</button>
+    </nav>
+  </section>
+
+  <!-- ===================== RESULTS ===================== -->
+  <section id="view-results" class="view">
+    <div class="eyebrow">Resultado final</div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 120 120">
+        <circle class="gauge-bg" cx="60" cy="60" r="52"/>
+        <circle class="gauge-fg" id="gauge-fg" cx="60" cy="60" r="52" stroke-dasharray="326.7"/>
+      </svg>
+      <div class="gauge-center">
+        <div class="gauge-num" id="gauge-num">0</div>
+        <div class="gauge-label">Nota / 100</div>
+      </div>
+    </div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-sub" id="result-sub"></div>
+
+    <div class="breakdown">
+      <h3>Por tema</h3>
+      <div id="breakdown-list"></div>
+    </div>
+
+    <div class="review-box" id="review-box" style="display:none;">
+      <h3>Repasá estas preguntas</h3>
+      <div id="review-list"></div>
+    </div>
+
+    <div class="result-btns">
+      <button class="btn btn-primary" onclick="retryQuiz()">🔁 Reintentar quiz</button>
+      <button class="btn btn-outline" onclick="goStudy(0)">📚 Volver a estudiar</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ===================================================================
+   DATA · TEMAS (Conocimiento → Habilidad → Contenido, según la tabla)
+=================================================================== */
+const TEMAS = [
+  { id:1, css:'t1', color:'var(--t1)', colorHex:'#00E5C8', soft:'var(--t1-soft)', emoji:'⭕', corto:'Circunferencia',
+    nombre:'Rectas y la circunferencia',
+    habilidad:'Determinar si una recta dada es secante, tangente o exterior a una circunferencia.',
+    contenido:'Rectas secante, tangente y exterior a una circunferencia · Fórmulas notables I y II.' },
+  { id:2, css:'t2', color:'var(--t2)', colorHex:'#FF3D8A', soft:'var(--t2-soft)', emoji:'📐', corto:'Pendientes',
+    nombre:'Paralelismo, perpendicularidad y oblicuidad',
+    habilidad:'Determinar si una recta es paralela, perpendicular u oblicua a otra recta dada.',
+    contenido:'Condiciones de paralelismo, perpendicularidad u oblicuidad. Pendientes de una recta.' },
+  { id:3, css:'t3', color:'var(--t3)', colorHex:'#8B5CF6', soft:'var(--t3-soft)', emoji:'📡', corto:'Tangente–radio',
+    nombre:'Tangente perpendicular al radio',
+    habilidad:'Aplicar la propiedad que establece la perpendicularidad entre la recta tangente y un radio en una circunferencia y viceversa.',
+    contenido:'Propiedad de perpendicularidad entre tangentes y radios en una circunferencia.' },
+  { id:4, css:'t4', color:'var(--t4)', colorHex:'#FFB020', soft:'var(--t4-soft)', emoji:'⬡', corto:'Polígonos',
+    nombre:'Ley de senos y polígonos regulares',
+    habilidad:'Determinar los diferentes elementos en un polígono regular.',
+    contenido:'Ángulo central, ángulo exterior, ángulo interno, suma de ángulos internos, total de diagonales, diagonales desde un vértice, perímetro y área (Ley de Senos).' },
+];
+
+/* ===================================================================
+   DATA · STUDY CARDS (resumen completo con ejemplos paso a paso)
+=================================================================== */
+const STUDY = [];
+function addCard(temaId, html){ STUDY.push({temaId, html}); }
+
+/* ---- PORTADA helper ---- */
+function portada(t){
+  return `<div class="tema-portada">
+    <div class="big-emoji">${t.emoji}</div>
+    <div class="card-eyebrow" style="color:${t.color}">Tema ${t.id} de 4</div>
+    <h2 class="card-title">${t.nombre}</h2>
+    <div class="hab-tag"><b>Habilidad:</b> ${t.habilidad}</div>
+    <div class="hab-tag" style="margin-top:8px;"><b>Contenido:</b> ${t.contenido}</div>
+  </div>`;
+}
+TEMAS.forEach(t => addCard(t.id, portada(t)));
+
+/* ---------------------------------------------------------------
+   TEMA 1 — Circunferencia y rectas
+--------------------------------------------------------------- */
+addCard(1, `
+  <div class="card-eyebrow" style="color:var(--t1)">Tema 1 · Concepto</div>
+  <h2 class="card-title">De forma general a forma ordinaria</h2>
+  <div class="card-body">
+    <p>Una circunferencia se puede escribir de dos formas:</p>
+    <div class="formula-box">General:  x² + y² + Dx + Ey + F = 0
+Ordinaria: (x − h)² + (y − k)² = r²
+Centro = (h, k)   Radio = r</div>
+    <p>Para pasar de general a ordinaria se <b>completa el cuadrado</b> usando las fórmulas notables:</p>
+    <div class="formula-box">I.  (a + b)² = a² + 2ab + b²
+II. (a − b)² = a² − 2ab + b²</div>
+    <p>Se agrupan los términos en x, los términos en y, y se suma a ambos lados el número que falta para formar un cuadrado perfecto.</p>
+  </div>`);
+
+addCard(1, `
+  <div class="card-eyebrow" style="color:var(--t1)">Tema 1 · Concepto</div>
+  <h2 class="card-title">Secante, tangente o exterior</h2>
+  <div class="card-body">
+    <p>Se calcula la <b>distancia del centro</b> de la circunferencia <b>a la recta</b>:</p>
+    <div class="formula-box">Recta: Ax + By + C = 0
+d = | A·x₀ + B·y₀ + C | / √(A² + B²)</div>
+    <p>Y se compara con el radio r:</p>
+    <div class="step"><span class="dot"></span><span><b>d &lt; r</b> → la recta es <b>SECANTE</b> (corta en 2 puntos)</span></div>
+    <div class="step"><span class="dot"></span><span><b>d = r</b> → la recta es <b>TANGENTE</b> (toca en 1 punto)</span></div>
+    <div class="step"><span class="dot"></span><span><b>d &gt; r</b> → la recta es <b>EXTERIOR</b> (no la toca)</span></div>
+  </div>`);
+
+addCard(1, `
+  <div class="card-eyebrow" style="color:var(--t1)">Tema 1 · Método alterno</div>
+  <h2 class="card-title">Sustitución y discriminante</h2>
+  <div class="card-body">
+    <p>Si tu profesor pide este método: se <b>sustituye</b> la recta (despejada en y) dentro de la ecuación de la circunferencia. Queda una ecuación cuadrática, y se analiza su <b>discriminante</b>:</p>
+    <div class="formula-box">Δ = b² − 4ac</div>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span><b>Δ &gt; 0</b> → 2 soluciones → <b>SECANTE</b></span></div>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span><b>Δ = 0</b> → 1 solución → <b>TANGENTE</b></span></div>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span><b>Δ &lt; 0</b> → 0 soluciones reales → <b>EXTERIOR</b></span></div>
+    <p>Llega al mismo resultado que el método de la distancia (más rápido), pero conviene reconocer ambos por si el examen lo pide así.</p>
+  </div>`);
+
+addCard(1, `
+  <div class="card-eyebrow" style="color:var(--t1)">Tema 1 · Ejemplo 1</div>
+  <h2 class="card-title">Clasificar una recta (caso secante)</h2>
+  <div class="card-body">
+    <p>Circunferencia: <span class="formula">x² + y² − 6x + 4y − 12 = 0</span> · Recta: <span class="formula">x + y − 1 = 0</span></p>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span>Agrupar: (x²−6x) + (y²+4y) = 12</span></div>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span>Completar cuadrados: (x²−6x+9) + (y²+4y+4) = 12+9+4</span></div>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span>(x−3)² + (y+2)² = 25 → Centro (3,−2), r = 5</span></div>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span>d = |1(3)+1(−2)−1| / √2 = |0| / √2 = 0</span></div>
+    <span class="result-pill" style="--accent:var(--t1); --accent-soft:var(--t1-soft)">d = 0 &lt; r = 5 → SECANTE</span>
+  </div>`);
+
+addCard(1, `
+  <div class="card-eyebrow" style="color:var(--t1)">Tema 1 · Ejemplo 2</div>
+  <h2 class="card-title">Clasificar una recta (caso tangente)</h2>
+  <div class="card-body">
+    <p>Circunferencia: <span class="formula">(x−1)² + (y−2)² = 8</span> → Centro (1,2), r = 2√2 ≈ 2.83</p>
+    <p>Recta: <span class="formula">x + y − 7 = 0</span></p>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span>d = |1(1)+1(2)−7| / √(1²+1²) = |−4| / √2</span></div>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span>d = 4/√2 = 2√2 ≈ 2.83</span></div>
+    <span class="result-pill" style="--accent:var(--t1); --accent-soft:var(--t1-soft)">d = r → TANGENTE</span>
+  </div>`);
+
+addCard(1, `
+  <div class="card-eyebrow" style="color:var(--t1)">Tema 1 · Ejemplo 3</div>
+  <h2 class="card-title">Clasificar una recta (caso exterior)</h2>
+  <div class="card-body">
+    <p>Circunferencia: <span class="formula">x² + y² = 9</span> → Centro (0,0), r = 3</p>
+    <p>Recta: <span class="formula">x + y − 10 = 0</span></p>
+    <div class="step"><span class="dot" style="background:var(--t1)"></span><span>d = |0+0−10| / √2 = 10/√2 ≈ 7.07</span></div>
+    <span class="result-pill" style="--accent:var(--t1); --accent-soft:var(--t1-soft)">d ≈ 7.07 &gt; r = 3 → EXTERIOR</span>
+  </div>`);
+
+/* ---------------------------------------------------------------
+   TEMA 2 — Paralelismo / perpendicularidad / oblicuidad
+--------------------------------------------------------------- */
+addCard(2, `
+  <div class="card-eyebrow" style="color:var(--t2)">Tema 2 · Concepto</div>
+  <h2 class="card-title">Pendiente y los 3 casos</h2>
+  <div class="card-body">
+    <div class="formula-box">m = (y₂ − y₁) / (x₂ − x₁)
+de Ax+By+C=0  →  m = −A/B</div>
+    <div class="step"><span class="dot" style="background:var(--t2)"></span><span><b>Paralelas (∥):</b> m₁ = m₂</span></div>
+    <div class="step"><span class="dot" style="background:var(--t2)"></span><span><b>Perpendiculares (⊥):</b> m₁ × m₂ = −1</span></div>
+    <div class="step"><span class="dot" style="background:var(--t2)"></span><span><b>Oblicuas:</b> se cortan, pero no cumplen ninguna condición anterior</span></div>
+  </div>`);
+
+addCard(2, `
+  <div class="card-eyebrow" style="color:var(--t2)">Tema 2 · Caso especial</div>
+  <h2 class="card-title">Rectas verticales y horizontales</h2>
+  <div class="card-body">
+    <p>Estas no se pueden meter directo en la fórmula m₁×m₂=−1, pero caen siempre en la misma regla:</p>
+    <div class="formula-box">Horizontal:  y = k   →  m = 0
+Vertical:    x = k   →  m indefinida</div>
+    <div class="step"><span class="dot" style="background:var(--t2)"></span><span>Una <b>horizontal</b> y una <b>vertical</b> SIEMPRE son perpendiculares</span></div>
+    <div class="step"><span class="dot" style="background:var(--t2)"></span><span>Dos verticales entre sí → paralelas. Dos horizontales entre sí → paralelas</span></div>
+    <p>⚠️ Trampa típica de examen: si ves x = algo, no tiene pendiente numérica — no apliques la fórmula, razoná directo.</p>
+  </div>`);
+
+addCard(2, `
+  <div class="card-eyebrow" style="color:var(--t2)">Tema 2 · Ejemplo 1</div>
+  <h2 class="card-title">Rectas paralelas</h2>
+  <div class="card-body">
+    <p>L₁: y = 2x + 3 → m₁ = 2</p>
+    <p>L₂: y = 2x − 5 → m₂ = 2</p>
+    <span class="result-pill" style="--accent:var(--t2); --accent-soft:var(--t2-soft)">m₁ = m₂ → PARALELAS</span>
+  </div>`);
+
+addCard(2, `
+  <div class="card-eyebrow" style="color:var(--t2)">Tema 2 · Ejemplo 2</div>
+  <h2 class="card-title">Rectas perpendiculares</h2>
+  <div class="card-body">
+    <p>L₁: y = 3x + 1 → m₁ = 3</p>
+    <p>L₂: y = −(1/3)x + 4 → m₂ = −1/3</p>
+    <div class="step"><span class="dot" style="background:var(--t2)"></span><span>m₁ × m₂ = 3 × (−1/3) = −1</span></div>
+    <span class="result-pill" style="--accent:var(--t2); --accent-soft:var(--t2-soft)">PERPENDICULARES</span>
+  </div>`);
+
+addCard(2, `
+  <div class="card-eyebrow" style="color:var(--t2)">Tema 2 · Ejemplo 3</div>
+  <h2 class="card-title">Rectas oblicuas</h2>
+  <div class="card-body">
+    <p>L₁ pasa por (0,0) y (2,4) → m₁ = (4−0)/(2−0) = 2</p>
+    <p>L₂ pasa por (1,1) y (3,2) → m₂ = (2−1)/(3−1) = 1/2</p>
+    <div class="step"><span class="dot" style="background:var(--t2)"></span><span>m₁ ≠ m₂  y  m₁ × m₂ = 1 ≠ −1</span></div>
+    <span class="result-pill" style="--accent:var(--t2); --accent-soft:var(--t2-soft)">OBLICUAS</span>
+  </div>`);
+
+/* ---------------------------------------------------------------
+   TEMA 3 — Tangente perpendicular al radio
+--------------------------------------------------------------- */
+addCard(3, `
+  <div class="card-eyebrow" style="color:var(--t3)">Tema 3 · Concepto</div>
+  <h2 class="card-title">La propiedad clave</h2>
+  <div class="card-body">
+    <p>La recta <b>tangente</b> a una circunferencia en un punto P es siempre <b>perpendicular</b> al radio trazado hasta P.</p>
+    <p><b>Recíproco:</b> si una recta es perpendicular a un radio justo en el punto donde lo toca, esa recta es tangente a la circunferencia en ese punto.</p>
+    <div class="formula-box">m(radio) × m(tangente) = −1
+m(tangente) = −1 / m(radio)</div>
+    <p>Esto sirve para <b>hallar la ecuación de la recta tangente</b> en un punto dado, o para <b>verificar</b> si una recta es tangente.</p>
+  </div>`);
+
+addCard(3, `
+  <div class="card-eyebrow" style="color:var(--t3)">Tema 3 · Ejemplo 1</div>
+  <h2 class="card-title">Hallar la tangente en un punto</h2>
+  <div class="card-body">
+    <p>Circunferencia: <span class="formula">x² + y² = 25</span>, centro O(0,0). Punto de tangencia P(3,4) — está en la circunferencia: 3²+4²=25 ✓</p>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>m(radio OP) = (4−0)/(3−0) = 4/3</span></div>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>m(tangente) = −1 / (4/3) = −3/4</span></div>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>y − 4 = −3/4 (x − 3)  →  y = −3/4 x + 25/4</span></div>
+    <span class="result-pill" style="--accent:var(--t3); --accent-soft:var(--t3-soft)">Tangente: 3x + 4y − 25 = 0</span>
+  </div>`);
+
+addCard(3, `
+  <div class="card-eyebrow" style="color:var(--t3)">Tema 3 · Ejemplo 2</div>
+  <h2 class="card-title">Verificar si una recta es tangente</h2>
+  <div class="card-body">
+    <p>Circunferencia centro C(2,1), r = 5. Punto P(5,5): (5−2)²+(5−1)²=9+16=25=r² ✓ está en la circunferencia.</p>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>m(radio CP) = (5−1)/(5−2) = 4/3</span></div>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>Recta dada: y = −3/4 x + 35/4 → pendiente −3/4</span></div>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>4/3 × (−3/4) = −1 → son perpendiculares</span></div>
+    <span class="result-pill" style="--accent:var(--t3); --accent-soft:var(--t3-soft)">SÍ es tangente en P(5,5)</span>
+  </div>`);
+
+addCard(3, `
+  <div class="card-eyebrow" style="color:var(--t3)">Tema 3 · Caso especial</div>
+  <h2 class="card-title">Radio horizontal o vertical</h2>
+  <div class="card-body">
+    <p>Cuando el radio no tiene pendiente "normal", no se puede dividir entre cero ni usar la fórmula directa — pero la lógica perpendicular se mantiene:</p>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>Si el radio es <b>horizontal</b> (m=0) → la tangente en ese punto es <b>vertical</b></span></div>
+    <div class="step"><span class="dot" style="background:var(--t3)"></span><span>Si el radio es <b>vertical</b> (m indefinida) → la tangente en ese punto es <b>horizontal</b></span></div>
+    <p><b>Ejemplo:</b> en x²+y²=16, el punto P(4,0) está sobre el eje x → el radio OP es horizontal (m=0).</p>
+    <span class="result-pill" style="--accent:var(--t3); --accent-soft:var(--t3-soft)">Tangente en P(4,0): x = 4</span>
+  </div>`);
+
+/* ---------------------------------------------------------------
+   TEMA 4 — Ley de senos y polígonos regulares
+--------------------------------------------------------------- */
+addCard(4, `
+  <div class="card-eyebrow" style="color:var(--t4)">Tema 4 · Concepto</div>
+  <h2 class="card-title">Elementos de un polígono regular</h2>
+  <div class="card-body">
+    <p>Para un polígono regular de <b>n</b> lados, con lado L:</p>
+    <div class="formula-box">Ángulo central:    θc = 360° / n
+Ángulo exterior:   θe = 360° / n
+Ángulo interno:    θi = 180° − θc
+Suma áng. internos: S = (n − 2) × 180°
+Diagonales totales: D = n(n − 3) / 2
+Diag. desde 1 vértice: n − 3
+Perímetro: P = n × L</div>
+    <p>⚠️ <b>Ojo:</b> el ángulo central se mide en el <b>centro</b> del polígono (entre dos radios). El ángulo exterior se mide en un <b>vértice</b>, prolongando un lado — es el suplemento del interno (θe = 180° − θi). Numéricamente dan el mismo valor (360°/n), pero son dos cosas distintas y el examen puede preguntar por separado.</p>
+  </div>`);
+
+addCard(4, `
+  <div class="card-eyebrow" style="color:var(--t4)">Tema 4 · Concepto</div>
+  <h2 class="card-title">Ley de senos → apotema y área</h2>
+  <div class="card-body">
+    <p>Dos radios y un lado forman un triángulo isósceles con ángulo central θc y ángulos base β = (180°−θc)/2.</p>
+    <div class="formula-box">Ley de senos:  L / sen(θc) = R / sen(β)
+→  R = L · sen(β) / sen(θc)
+Apotema:  a = R · cos(θc / 2)
+Área = (Perímetro × apotema) / 2</div>
+  </div>`);
+
+addCard(4, `
+  <div class="card-eyebrow" style="color:var(--t4)">Tema 4 · Ejemplo 1</div>
+  <h2 class="card-title">Pentágono regular, L = 8 cm</h2>
+  <div class="card-body">
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>θc = 360°/5 = 72° · θi = 108° · suma = 540°</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>Diagonales: total 5, desde 1 vértice = 2</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>β = (180−72)/2 = 54°</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>R = 8·sen54° / sen72° ≈ 6.80 cm</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>Apotema a = 6.80 × cos36° ≈ 5.51 cm</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>Perímetro = 5×8 = 40 cm</span></div>
+    <span class="result-pill" style="--accent:var(--t4); --accent-soft:var(--t4-soft)">Área = (40×5.51)/2 ≈ 110.1 cm²</span>
+  </div>`);
+
+addCard(4, `
+  <div class="card-eyebrow" style="color:var(--t4)">Tema 4 · Ejemplo 2</div>
+  <h2 class="card-title">Octágono regular, L = 6 cm</h2>
+  <div class="card-body">
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>θc = 360°/8 = 45° · θi = 135° · suma = 1080°</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>Diagonales: total 20, desde 1 vértice = 5</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>β = (180−45)/2 = 67.5°</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>R = 6·sen67.5° / sen45° ≈ 7.84 cm</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>Apotema a = 7.84 × cos22.5° ≈ 7.24 cm</span></div>
+    <div class="step"><span class="dot" style="background:var(--t4)"></span><span>Perímetro = 8×6 = 48 cm</span></div>
+    <span class="result-pill" style="--accent:var(--t4); --accent-soft:var(--t4-soft)">Área = (48×7.24)/2 ≈ 173.8 cm²</span>
+  </div>`);
+
+/* ===================================================================
+   DATA · QUIZ (32 preguntas — 8 por tema)
+=================================================================== */
+const QUIZ = [
+/* ---------- TEMA 1 ---------- */
+{temaId:1, q:'Al completar el cuadrado en x² + y² − 8x + 6y + 9 = 0, ¿cuál es el centro de la circunferencia?',
+ opts:['(8, −6)','(−4, 3)','(4, −3)','(4, 3)'], correct:2,
+ exp:'(x²−8x+16)+(y²+6y+9) = −9+16+9 → (x−4)²+(y+3)²=16. Centro (4,−3).'},
+{temaId:1, q:'Con la circunferencia anterior, x² + y² − 8x + 6y + 9 = 0, ¿cuál es el radio?',
+ opts:['9','3','16','4'], correct:3, exp:'(x−4)²+(y+3)²=16 → r²=16 → r=4.'},
+{temaId:1, q:'Para completar el cuadrado del término "y² + 6y" (dentro de x²+y²−8x+6y+9=0), ¿qué fórmula notable se aplica?',
+ opts:['(a + b)² = a² + 2ab + b²','(a − b)² = a² − 2ab + b²','a² − b² = (a+b)(a−b)','Ninguna, ya es un cuadrado perfecto'], correct:0,
+ exp:'Como el término es +6y (positivo), se usa (a+b)²: y²+6y+9=(y+3)².'},
+{temaId:1, q:'Dada (x−3)² + (y+2)² = 25 y la recta x + y − 1 = 0, ¿cuál es la distancia del centro a la recta?',
+ opts:['0','2','√2','1'], correct:0, exp:'d = |1(3)+1(−2)−1| / √2 = 0/√2 = 0.'},
+{temaId:1, q:'Según el resultado anterior (d = 0, r = 5), la recta x + y − 1 = 0 es:',
+ opts:['Tangente','Secante','Exterior','Paralela al eje x'], correct:1, exp:'Como d=0 < r=5, la recta es secante (de hecho pasa por el centro).'},
+{temaId:1, q:'Si la distancia del centro de una circunferencia a una recta es exactamente igual al radio, la recta es:',
+ opts:['Secante','Exterior','Tangente','No se puede determinar'], correct:2, exp:'Cuando d = r, la recta toca la circunferencia en un solo punto: es tangente.'},
+{temaId:1, q:'Circunferencia (x−1)² + (y−2)² = 8 (r = 2√2) y recta x + y − 7 = 0, cuya distancia al centro es 2√2. La recta es:',
+ opts:['Secante','Tangente','Exterior','Coincide con la circunferencia'], correct:1, exp:'d = r = 2√2, por lo tanto es tangente.'},
+{temaId:1, q:'Si la distancia d entre el centro de una circunferencia y una recta es mayor que el radio r, ¿cuántos puntos de intersección hay?',
+ opts:['0','1','2','Infinitos'], correct:0, exp:'d > r significa que la recta es exterior: no toca la circunferencia, 0 puntos.'},
+{temaId:1, q:'Para completar el cuadrado del término "x² − 8x" (en x²+y²−8x+6y+9=0), ¿qué fórmula notable se aplica y qué número se suma?',
+ opts:['(a−b)², se suma 16','(a+b)², se suma 16','(a−b)², se suma 8','(a+b)², se suma 64'], correct:0, exp:'Como el término es −8x (negativo), se usa (a−b)²: x²−8x+16=(x−4)². Se suma 16.'},
+{temaId:1, q:'Al sustituir una recta en la ecuación de una circunferencia se obtiene la ecuación cuadrática x² − 4x + 4 = 0, cuyo discriminante es 0. La recta es:',
+ opts:['Secante','Tangente','Exterior','No se puede saber'], correct:1, exp:'Δ=0 → la ecuación tiene una única solución → la recta toca la circunferencia en un solo punto: es tangente.'},
+
+/* ---------- TEMA 2 ---------- */
+{temaId:2, q:'¿Cuál es la pendiente de la recta que pasa por (1, 2) y (4, 11)?',
+ opts:['3','1/3','−3','9'], correct:0, exp:'m = (11−2)/(4−1) = 9/3 = 3.'},
+{temaId:2, q:'Dos rectas son paralelas cuando:',
+ opts:['m₁ × m₂ = −1','m₁ = m₂','m₁ = −m₂','m₁ + m₂ = 0'], correct:1, exp:'El paralelismo se cumple cuando ambas pendientes son iguales.'},
+{temaId:2, q:'Dos rectas son perpendiculares cuando:',
+ opts:['m₁ = m₂','m₁ × m₂ = 1','m₁ × m₂ = −1','m₁ − m₂ = 0'], correct:2, exp:'La condición de perpendicularidad es que el producto de pendientes sea −1.'},
+{temaId:2, q:'La recta y = 5x − 2 es paralela a:',
+ opts:['y = 5x + 10','y = −5x + 10','y = (1/5)x + 10','y = −(1/5)x + 3'], correct:0, exp:'Misma pendiente m=5 en ambas rectas → paralelas.'},
+{temaId:2, q:'La recta y = (2/3)x + 1 es perpendicular a:',
+ opts:['y = (2/3)x − 4','y = −(3/2)x + 7','y = (3/2)x + 2','y = −(2/3)x + 5'], correct:1, exp:'(2/3) × (−3/2) = −1, por lo tanto son perpendiculares.'},
+{temaId:2, q:'Dos rectas tienen pendientes m₁ = 4 y m₂ = −1/4. Son:',
+ opts:['Paralelas','Perpendiculares','Oblicuas','Coincidentes'], correct:1, exp:'4 × (−1/4) = −1 → perpendiculares.'},
+{temaId:2, q:'Dos rectas tienen pendientes m₁ = 2 y m₂ = 3. Son:',
+ opts:['Paralelas','Perpendiculares','Oblicuas','Verticales'], correct:2, exp:'No son iguales (no paralelas) ni su producto es −1 (no perpendiculares) → oblicuas.'},
+{temaId:2, q:'¿Cuál es la pendiente de la recta 3x − 2y + 6 = 0?',
+ opts:['3/2','−3/2','2/3','6'], correct:0, exp:'Despejando y: y = (3/2)x + 3 → m = 3/2.'},
+{temaId:2, q:'La recta x = 4 y la recta y = −2 son:',
+ opts:['Paralelas','Perpendiculares','Oblicuas','No se pueden comparar'], correct:1, exp:'Toda recta vertical (x=k) es perpendicular a toda recta horizontal (y=k), aunque la vertical no tenga pendiente numérica.'},
+
+/* ---------- TEMA 3 ---------- */
+{temaId:3, q:'La propiedad fundamental entre una recta tangente y el radio en el punto de tangencia establece que:',
+ opts:['Son paralelos','Son perpendiculares','Tienen la misma pendiente','Se cruzan en el centro'], correct:1, exp:'La tangente siempre es perpendicular al radio en el punto donde lo toca.'},
+{temaId:3, q:'Si el radio trazado a un punto P tiene pendiente 5, ¿cuál es la pendiente de la recta tangente en P?',
+ opts:['5','−5','1/5','−1/5'], correct:3, exp:'m(tangente) = −1/m(radio) = −1/5.'},
+{temaId:3, q:'En la circunferencia x² + y² = 25, con punto de tangencia P(3,4), ¿cuál es la pendiente del radio OP?',
+ opts:['3/4','4/3','−4/3','−3/4'], correct:1, exp:'m = (4−0)/(3−0) = 4/3.'},
+{temaId:3, q:'Con el resultado anterior, ¿cuál es la pendiente de la recta tangente en P(3,4)?',
+ opts:['4/3','−4/3','3/4','−3/4'], correct:3, exp:'m(tangente) = −1 / (4/3) = −3/4.'},
+{temaId:3, q:'La ecuación de la recta tangente a x² + y² = 25 en P(3,4), en forma general, es:',
+ opts:['3x + 4y − 25 = 0','4x + 3y − 25 = 0','3x − 4y + 25 = 0','x + y − 7 = 0'], correct:0, exp:'y − 4 = −3/4(x−3) → 4y−16 = −3x+9 → 3x+4y−25=0.'},
+{temaId:3, q:'Circunferencia centro C(2,1), r = 5, con P(5,5) sobre ella. ¿Cuál es la pendiente del radio CP?',
+ opts:['3/4','4/3','−4/3','5/2'], correct:1, exp:'m = (5−1)/(5−2) = 4/3.'},
+{temaId:3, q:'Si una recta con pendiente −3/4 pasa por P(5,5) y es perpendicular al radio CP (m=4/3), esa recta es:',
+ opts:['Secante','Tangente en P','Exterior','Paralela al radio'], correct:1, exp:'4/3 × (−3/4) = −1, son perpendiculares → la recta es tangente en P.'},
+{temaId:3, q:'Si una recta NO es perpendicular al radio en el punto donde lo toca, entonces esa recta:',
+ opts:['Es tangente','Es secante','No puede ser tangente en ese punto','Es tangente solo si pasa por el centro'], correct:2, exp:'La perpendicularidad con el radio es condición necesaria para ser tangente en ese punto.'},
+{temaId:3, q:'En la circunferencia x² + y² = 16, el punto de tangencia es P(4,0). ¿Cuál es la ecuación de la recta tangente en P?',
+ opts:['x = 4','y = 4','y = 0','x = 0'], correct:0, exp:'El radio OP es horizontal (m=0), por lo tanto la tangente en ese punto es vertical: x = 4.'},
+
+/* ---------- TEMA 4 ---------- */
+{temaId:4, q:'¿Cuál es el ángulo central de un hexágono regular (n = 6)?',
+ opts:['60°','120°','90°','720°'], correct:0, exp:'θc = 360°/6 = 60°.'},
+{temaId:4, q:'¿Cuál es el ángulo interno de un pentágono regular (n = 5)?',
+ opts:['72°','108°','540°','360°'], correct:1, exp:'θi = (5−2)×180°/5 = 540°/5 = 108°.'},
+{temaId:4, q:'¿Cuál es la suma de los ángulos internos de un octágono regular (n = 8)?',
+ opts:['1080°','360°','720°','900°'], correct:0, exp:'S = (8−2)×180° = 1080°.'},
+{temaId:4, q:'¿Cuántas diagonales totales tiene un heptágono (n = 7)?',
+ opts:['14','7','21','4'], correct:0, exp:'D = 7(7−3)/2 = 28/2 = 14.'},
+{temaId:4, q:'¿Cuántas diagonales se pueden trazar desde un solo vértice de un decágono (n = 10)?',
+ opts:['10','7','5','13'], correct:1, exp:'Diagonales desde un vértice = n − 3 = 10 − 3 = 7.'},
+{temaId:4, q:'¿Cuál es el perímetro de un pentágono regular con lado L = 8 cm?',
+ opts:['40 cm','8 cm','24 cm','16 cm'], correct:0, exp:'P = n×L = 5×8 = 40 cm.'},
+{temaId:4, q:'Para hallar el apotema de un polígono regular usando la Ley de Senos, primero se calcula:',
+ opts:['El área directamente','El circunradio (R), con el triángulo isósceles de 2 radios y un lado','El perímetro','Solo el ángulo exterior'], correct:1, exp:'La Ley de Senos da R; luego a = R·cos(θc/2).'},
+{temaId:4, q:'Si el circunradio de un pentágono regular es R ≈ 6.80 cm y el ángulo central es 72°, el apotema (a = R·cos(θc/2)) es aproximadamente:',
+ opts:['5.50 cm','6.80 cm','3.40 cm','7.20 cm'], correct:0, exp:'a = 6.80 × cos(36°) ≈ 6.80 × 0.809 ≈ 5.50 cm.'},
+{temaId:4, q:'¿Cuál es el ángulo exterior de un dodecágono regular (n = 12)?',
+ opts:['30°','150°','12°','360°'], correct:0, exp:'θe = 360°/12 = 30°. Numéricamente igual al ángulo central, pero se mide en el vértice (prolongando un lado), no en el centro.'},
+];
+
+/* ===================================================================
+   RENDER · HOME
+=================================================================== */
+function renderHome(){
+  document.getElementById('tema-pills').innerHTML = TEMAS.map(t=>`
+    <button class="tema-pill ${t.css}" onclick="goStudy(${t.id-1}, true)">
+      <div class="num">${t.emoji} TEMA ${t.id}</div>
+      <div class="name">${t.corto}</div>
+    </button>`).join('');
+
+  document.getElementById('hab-list').innerHTML = TEMAS.map(t=>`
+    <div class="hab-item"><span class="chk">✓</span><span><b>T${t.id}.</b> ${t.habilidad}</span></div>
+  `).join('');
+}
+
+/* ===================================================================
+   STUDY MODE
+=================================================================== */
+function buildStudyColors(){
+  return STUDY.map(c=>{
+    const tema = TEMAS.find(t=>t.id===c.temaId);
+    return `<div class="study-card" style="--accent:${tema.color}; --accent-soft:${tema.soft}; --bar-color:${tema.color}">${c.html}<div class="swipe-hint">↑ desliza para seguir</div></div>`;
+  }).join('');
+}
+function buildProgressBar(){
+  return STUDY.map((c,i)=>`<i data-i="${i}"></i>`).join('');
+}
+
+let studyInit = false;
+function initStudy(){
+  if(studyInit) return;
+  const scroll = document.getElementById('study-scroll');
+  scroll.innerHTML = `<div class="study-progress" id="study-progress">${buildProgressBar()}</div>
+    <button class="tback" onclick="showHome()">✕ salir</button>` + buildStudyColors();
+  scroll.addEventListener('scroll', onStudyScroll);
+  studyInit = true;
+}
+function onStudyScroll(){
+  const scroll = document.getElementById('study-scroll');
+  const idx = Math.round(scroll.scrollTop / scroll.clientHeight);
+  document.querySelectorAll('#study-progress i').forEach((el,i)=>{
+    el.classList.toggle('done', i<=idx);
+    const tema = TEMAS.find(t=>t.id===STUDY[Math.min(i,STUDY.length-1)].temaId);
+  });
+}
+function goStudy(index, scrollTo){
+  showView('view-study');
+  initStudy();
+  if(typeof index === 'number'){
+    const scroll = document.getElementById('study-scroll');
+    let target = index;
+    if(scrollTo){
+      target = STUDY.findIndex(c=>c.temaId === TEMAS[index].id);
+    }
+    requestAnimationFrame(()=>{
+      scroll.scrollTo({top: target*scroll.clientHeight, behavior:'auto'});
+      onStudyScroll();
+    });
+  } else {
+    onStudyScroll();
+  }
+}
+
+/* ===================================================================
+   QUIZ MODE
+=================================================================== */
+let quizState = { idx:0, answers:new Array(QUIZ.length).fill(null), locked:false };
+
+function goQuiz(){
+  showView('view-quiz');
+  renderQuestion();
+}
+function retryQuiz(){
+  quizState = { idx:0, answers:new Array(QUIZ.length).fill(null), locked:false };
+  goQuiz();
+}
+function renderQuestion(){
+  const i = quizState.idx;
+  const item = QUIZ[i];
+  const tema = TEMAS.find(t=>t.id===item.temaId);
+  document.getElementById('quiz-progress-fill').style.width = (i/QUIZ.length*100)+'%';
+  document.getElementById('quiz-counter').textContent = `Pregunta ${i+1}/${QUIZ.length}`;
+  const tag = document.getElementById('quiz-tema-tag');
+  tag.textContent = `Tema ${tema.id} · ${tema.corto}`;
+  tag.style.background = tema.soft; tag.style.color = tema.color;
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-q">${item.q}</div>
+    <div id="opts-wrap">
+      ${item.opts.map((o,oi)=>`
+        <button class="opt" data-oi="${oi}" onclick="selectOpt(${oi})">
+          <span class="letter">${letters[oi]}</span><span>${o}</span>
+        </button>`).join('')}
+    </div>
+    <div id="explain-wrap"></div>
+    <div id="next-wrap" style="margin-top:6px;"></div>
+  `;
+  quizState.locked = false;
+}
+function selectOpt(oi){
+  if(quizState.locked) return;
+  quizState.locked = true;
+  const i = quizState.idx;
+  const item = QUIZ[i];
+  quizState.answers[i] = oi;
+  document.querySelectorAll('#opts-wrap .opt').forEach(btn=>{
+    btn.classList.add('disabled');
+    const boi = +btn.dataset.oi;
+    if(boi === item.correct) btn.classList.add('correct');
+    else if(boi === oi) btn.classList.add('wrong');
+  });
+  const ok = oi === item.correct;
+  document.getElementById('explain-wrap').innerHTML = `
+    <div class="explain-box"><b>${ok?'¡Correcto! ✅':'No era esa ❌'}</b><br>${item.exp}</div>`;
+  const isLast = i === QUIZ.length-1;
+  document.getElementById('next-wrap').innerHTML = `
+    <button class="btn btn-primary" style="width:100%; margin-top:14px;" onclick="${isLast?'showResults()':'nextQuestion()'}">
+      ${isLast? 'Ver mi nota 🎯' : 'Siguiente →'}
+    </button>`;
+}
+function nextQuestion(){
+  quizState.idx++;
+  renderQuestion();
+}
+
+/* ===================================================================
+   RESULTS
+=================================================================== */
+function showResults(){
+  showView('view-results');
+  const total = QUIZ.length;
+  let correctCount = 0;
+  const byTema = {};
+  TEMAS.forEach(t=> byTema[t.id] = {correct:0, total:0});
+
+  QUIZ.forEach((item,i)=>{
+    byTema[item.temaId].total++;
+    if(quizState.answers[i] === item.correct){ correctCount++; byTema[item.temaId].correct++; }
+  });
+
+  const nota = Math.round(correctCount/total*100);
+  const circumference = 2*Math.PI*52;
+  const offset = circumference*(1 - nota/100);
+  const fg = document.getElementById('gauge-fg');
+  fg.style.strokeDasharray = circumference;
+  let notaColor = nota>=70 ? '#2BD576' : (nota>=50 ? '#FFB020' : '#FF5470');
+  fg.style.stroke = notaColor;
+  document.getElementById('gauge-num').style.color = notaColor;
+
+  setTimeout(()=>{ fg.style.strokeDashoffset = offset; }, 60);
+  let n=0;
+  const numEl = document.getElementById('gauge-num');
+  const stepTime = 700/Math.max(nota,1);
+  const counter = setInterval(()=>{
+    n++; numEl.textContent = n;
+    if(n>=nota) clearInterval(counter);
+  }, Math.max(stepTime,8));
+
+  document.getElementById('result-msg').textContent =
+    nota>=90 ? '¡Excelente! Dominás el tema 🏆' :
+    nota>=70 ? '¡Aprobado! Buen trabajo 🎉' :
+    nota>=50 ? 'Vas bien, repasá un poco más 💪' :
+    'Hay que repasar antes del examen 📖';
+  document.getElementById('result-sub').textContent = `${correctCount} de ${total} respuestas correctas`;
+
+  document.getElementById('breakdown-list').innerHTML = TEMAS.map(t=>{
+    const b = byTema[t.id];
+    const pct = Math.round(b.correct/b.total*100);
+    return `<div class="bd-row">
+      <div class="bd-top"><span>${t.emoji} Tema ${t.id} · ${t.corto}</span><span>${b.correct}/${b.total}</span></div>
+      <div class="bd-track"><div class="bd-fill" style="width:${pct}%; background:${t.color}"></div></div>
+    </div>`;
+  }).join('');
+
+  const wrong = QUIZ.map((item,i)=>({item,i})).filter(x=>quizState.answers[x.i] !== x.item.correct);
+  const reviewBox = document.getElementById('review-box');
+  if(wrong.length){
+    reviewBox.style.display='block';
+    document.getElementById('review-list').innerHTML = wrong.map(x=>`
+      <div class="review-item">
+        <div class="rq">${x.item.q}</div>
+        <div class="ra">✓ ${x.item.opts[x.item.correct]}</div>
+        <div style="color:var(--text-dim); margin-top:4px;">${x.item.exp}</div>
+      </div>`).join('');
+  } else {
+    reviewBox.style.display='none';
+  }
+}
+
+/* ===================================================================
+   NAV / VIEW SWITCH
+=================================================================== */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll(`#${id} .nav-btn`).forEach(b=>{});
+}
+function showHome(){ showView('view-home'); }
+
+renderHome();
+</script>
+</body>
+</html>
