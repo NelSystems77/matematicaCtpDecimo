@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0B0B14">
 <title>Geometría Analítica · 10° · CTP Vázquez de Coronado</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0B0B14;
@@ -29,15 +26,15 @@
   html,body{height:100%;}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font-family:'Inter',system-ui,sans-serif;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
     overflow:hidden;
   }
-  .formula{font-family:'JetBrains Mono',monospace;}
-  h1,h2,h3,.display{font-family:'Space Grotesk',system-ui,sans-serif;}
+  .formula{font-family:ui-monospace,SFMono-Regular,'Roboto Mono','SF Mono',Menlo,Consolas,monospace;}
+  h1,h2,h3,.display{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; letter-spacing:-0.01em;}
   button{font-family:inherit;}
 
   #app-frame{
-    position:relative; height:100dvh; width:100%; max-width:480px; margin:0 auto;
+    position:relative; height:100vh; height:100dvh; width:100%; max-width:480px; margin:0 auto;
     background:var(--bg); overflow:hidden;
   }
   @media (min-width:540px){
@@ -68,7 +65,7 @@
     border:1px solid var(--line); border-radius:16px; padding:14px 14px 12px;
     background:var(--surface); cursor:pointer; text-align:left;
   }
-  .tema-pill .num{font-family:'Space Grotesk'; font-weight:700; font-size:13px; opacity:.85;}
+  .tema-pill .num{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:13px; opacity:.85;}
   .tema-pill .name{font-size:13.5px; font-weight:600; margin-top:6px; line-height:1.25;}
   .tema-pill.t1{border-color:rgba(0,229,200,.35);} .tema-pill.t1 .num{color:var(--t1);}
   .tema-pill.t2{border-color:rgba(255,61,138,.35);} .tema-pill.t2 .num{color:var(--t2);}
@@ -106,8 +103,7 @@
   .nav-btn.active{color:var(--text);}
 
   /* ---------- STUDY ---------- */
-  #view-study{position:relative;}
-  .study-scroll{flex:1; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth;}
+  .study-scroll{flex:1; overflow-y:scroll; -webkit-overflow-scrolling:touch; scroll-snap-type:y mandatory; scroll-behavior:smooth;}
   .study-card{
     height:100%; min-height:100%; scroll-snap-align:start; scroll-snap-stop:always;
     display:flex; flex-direction:column; justify-content:center; padding:30px 26px 100px;
@@ -123,7 +119,7 @@
   .card-body{font-size:15px; line-height:1.62; color:#D8D8E4;}
   .card-body p{margin:0 0 12px;}
   .formula-box{
-    font-family:'JetBrains Mono',monospace; font-size:14px; background:var(--surface);
+    font-family:ui-monospace,SFMono-Regular,'Roboto Mono','SF Mono',Menlo,Consolas,monospace; font-size:14px; background:var(--surface);
     border:1px solid var(--line); border-left:3px solid var(--accent,var(--t1));
     border-radius:12px; padding:13px 15px; margin:12px 0; line-height:1.65; white-space:pre-wrap;
   }
@@ -132,8 +128,20 @@
   .step{display:flex; gap:10px; margin:9px 0; font-size:14px; align-items:flex-start;}
   .step .dot{flex:none; width:6px; height:6px; border-radius:50%; background:var(--accent,var(--t1)); margin-top:7px;}
   .swipe-hint{position:absolute; bottom:96px; left:0; right:0; text-align:center; font-size:11.5px;
-    color:var(--text-dim); letter-spacing:.04em; animation:bob 1.8s ease-in-out infinite;}
+    color:var(--text-dim); letter-spacing:.04em; animation:bob 1.8s ease-in-out infinite; pointer-events:none;}
   @keyframes bob{0%,100%{transform:translateY(0); opacity:.55;} 50%{transform:translateY(5px); opacity:1;}}
+
+  .study-nav-btn{
+    position:absolute; right:18px; width:46px; height:46px; border-radius:50%;
+    background:rgba(255,255,255,.1); border:1px solid var(--line); backdrop-filter:blur(8px);
+    display:flex; align-items:center; justify-content:center; font-size:19px; font-weight:700;
+    color:var(--text); cursor:pointer; z-index:6; transition:transform .15s ease, opacity .15s;
+  }
+  .study-nav-btn:active{transform:scale(.88);}
+  .study-nav-btn:focus-visible{outline:2px solid var(--t1); outline-offset:2px;}
+  .study-nav-btn.next{bottom:122px;}
+  .study-nav-btn.prev{bottom:176px;}
+  .study-nav-btn[disabled]{opacity:.25; pointer-events:none;}
 
   .tema-portada{align-items:flex-start;}
   .tema-portada .big-emoji{font-size:46px; margin-bottom:14px;}
@@ -150,14 +158,14 @@
   .quiz-meta{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-dim); font-weight:600;}
   .quiz-tema-tag{font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px;}
   .quiz-body{flex:1; padding:10px 22px 18px; overflow-y:auto;}
-  .quiz-q{font-size:21px; font-weight:700; line-height:1.32; margin:14px 0 22px; font-family:'Space Grotesk';}
+  .quiz-q{font-size:21px; font-weight:700; line-height:1.32; margin:14px 0 22px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}
   .opt{
     display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:var(--surface);
     border:1.5px solid var(--line); border-radius:16px; padding:15px 16px; margin-bottom:11px;
     font-size:14.5px; font-weight:500; color:var(--text); cursor:pointer; transition:border-color .15s, background .15s;
   }
   .opt .letter{flex:none; width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.08);
-    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:'Space Grotesk';}
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}
   .opt:active{transform:scale(.985);}
   .opt.correct{border-color:var(--good); background:rgba(43,213,118,.12);}
   .opt.correct .letter{background:var(--good); color:#06150C;}
@@ -178,7 +186,7 @@
   .gauge-bg{fill:none; stroke:rgba(255,255,255,.08); stroke-width:11;}
   .gauge-fg{fill:none; stroke-width:11; stroke-linecap:round; transition:stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1), stroke 0.4s;}
   .gauge-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
-  .gauge-num{font-family:'Space Grotesk'; font-size:46px; font-weight:700; line-height:1;}
+  .gauge-num{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; font-size:46px; font-weight:700; line-height:1;}
   .gauge-label{font-size:11px; color:var(--text-dim); letter-spacing:.1em; text-transform:uppercase; margin-top:4px;}
   .result-msg{font-size:16px; font-weight:700; margin:14px 0 4px;}
   .result-sub{font-size:13px; color:var(--text-dim); margin-bottom:24px;}
@@ -226,6 +234,8 @@
   <!-- ===================== STUDY ===================== -->
   <section id="view-study" class="view">
     <div class="study-scroll" id="study-scroll"></div>
+    <button class="study-nav-btn prev" id="study-prev-btn" onclick="studyStep(-1)" aria-label="Tarjeta anterior">↑</button>
+    <button class="study-nav-btn next" id="study-next-btn" onclick="studyStep(1)" aria-label="Siguiente tarjeta">↓</button>
     <nav class="bottom-nav">
       <button class="nav-btn" onclick="showHome()"><span class="ic">🏠</span>Inicio</button>
       <button class="nav-btn active" onclick="goStudy()"><span class="ic">📚</span>Estudiar</button>
@@ -667,7 +677,7 @@ function renderHome(){
 function buildStudyColors(){
   return STUDY.map(c=>{
     const tema = TEMAS.find(t=>t.id===c.temaId);
-    return `<div class="study-card" style="--accent:${tema.color}; --accent-soft:${tema.soft}; --bar-color:${tema.color}">${c.html}<div class="swipe-hint">↑ desliza para seguir</div></div>`;
+    return `<div class="study-card" style="--accent:${tema.color}; --accent-soft:${tema.soft}; --bar-color:${tema.color}">${c.html}<div class="swipe-hint">↑ deslizá o tocá ↓ para seguir</div></div>`;
   }).join('');
 }
 function buildProgressBar(){
@@ -688,9 +698,24 @@ function onStudyScroll(){
   const idx = Math.round(scroll.scrollTop / scroll.clientHeight);
   document.querySelectorAll('#study-progress i').forEach((el,i)=>{
     el.classList.toggle('done', i<=idx);
-    const tema = TEMAS.find(t=>t.id===STUDY[Math.min(i,STUDY.length-1)].temaId);
   });
+  const prevBtn = document.getElementById('study-prev-btn');
+  const nextBtn = document.getElementById('study-next-btn');
+  if(prevBtn) prevBtn.disabled = idx<=0;
+  if(nextBtn) nextBtn.disabled = idx>=STUDY.length-1;
 }
+function studyStep(dir){
+  const scroll = document.getElementById('study-scroll');
+  const idx = Math.round(scroll.scrollTop / scroll.clientHeight);
+  const target = Math.max(0, Math.min(STUDY.length-1, idx+dir));
+  scroll.scrollTo({top: target*scroll.clientHeight, behavior:'smooth'});
+  setTimeout(onStudyScroll, 350);
+}
+document.addEventListener('keydown', (e)=>{
+  if(!document.getElementById('view-study').classList.contains('active')) return;
+  if(['ArrowDown','PageDown'].includes(e.key)){ e.preventDefault(); studyStep(1); }
+  if(['ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); studyStep(-1); }
+});
 function goStudy(index, scrollTo){
   showView('view-study');
   initStudy();
